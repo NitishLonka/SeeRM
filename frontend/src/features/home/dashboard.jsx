@@ -1,27 +1,61 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { api } from '../../api/client';
+import { formatCurrency, formatRelativeTime } from '../../utils/format';
 
-const INITIAL_CUSTOMERS = [
-  { id: 1, name: 'Sarah Jenkins', company: 'Apex Logistics', status: 'Active', value: '$14,500', lastContact: '2 hours ago' },
-  { id: 2, name: 'Marcus Vance', company: 'Brightline Tech', status: 'Lead', value: '$8,200', lastContact: '1 day ago' },
-  { id: 3, name: 'Elena Rostova', company: 'Horizon Retail', status: 'Active', value: '$32,000', lastContact: '3 days ago' },
-  { id: 4, name: 'David Kim', company: 'Kestrel Media', status: 'Inactive', value: '$4,100', lastContact: '2 weeks ago' },
-];
+const SEARCH_DEBOUNCE_MS = 300;
 
 export default function CrmHomepage() {
-  const [customers] = useState(INITIAL_CUSTOMERS);
+  const [summary, setSummary] = useState(null);
+  const [summaryError, setSummaryError] = useState(null);
+
+  const [customers, setCustomers] = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [customersLoading, setCustomersLoading] = useState(true);
+  const [customersError, setCustomersError] = useState(null);
+
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
 
-  // Filter customers by name or company
-  const filteredCustomers = customers.filter(
-    (c) =>
-      c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.company.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // KPI cards
+  useEffect(() => {
+    const controller = new AbortController();
+    api
+      .getDashboardSummary(controller.signal)
+      .then(setSummary)
+      .catch((err) => err.name !== 'AbortError' && setSummaryError(err.message));
+    return () => controller.abort();
+  }, []);
 
-  // Dynamic KPI calculations
-  const totalCustomers = customers.length;
-  const activeLeads = customers.filter((c) => c.status === 'Lead').length;
+  // Wait for typing to pause before searching on the server.
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery.trim()), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Customer directory (server-side search by name or company)
+  useEffect(() => {
+    const controller = new AbortController();
+    setCustomersLoading(true);
+    setCustomersError(null);
+    api
+      .listCustomers({ search: debouncedSearch }, controller.signal)
+      .then((result) => {
+        setCustomers(result.items);
+        setTotalCount(result.totalCount);
+        setCustomersLoading(false);
+      })
+      .catch((err) => {
+        if (err.name === 'AbortError') return;
+        setCustomersError(err.message);
+        setCustomersLoading(false);
+      });
+    return () => controller.abort();
+  }, [debouncedSearch]);
+
+  const kpi = (value) => (summary ? value(summary) : summaryError ? '—' : '…');
+  const completionRate =
+    summary && summary.tasksTotal > 0 ? Math.round((summary.tasksCompleted / summary.tasksTotal) * 100) : 0;
 
   return (
     <div style={{ fontFamily: 'sans-serif', backgroundColor: '#f8fafc', minHeight: '100vh', padding: '24px' }}>
@@ -50,16 +84,32 @@ export default function CrmHomepage() {
 
       {/* KPI Metrics Row */}
       <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-        <StatCard title="Total Customers" value={totalCustomers} trend="+12% this month" />
-        <StatCard title="Active Leads" value={activeLeads} trend="3 follow-ups due" />
-        <StatCard title="Pipeline Revenue" value="$58,800" trend="+8.4% vs last quarter" />
-        <StatCard title="Tasks Completed" value="18 / 22" trend="82% completion rate" />
+        <StatCard title="Total Customers" value={kpi((s) => s.totalCustomers)} />
+        <StatCard
+          title="Active Leads"
+          value={kpi((s) => s.activeLeads)}
+          trend={summary && `${summary.followUpsDue} follow-up${summary.followUpsDue === 1 ? '' : 's'} due`}
+        />
+        <StatCard title="Pipeline Revenue" value={kpi((s) => formatCurrency(s.pipelineRevenue))} />
+        <StatCard
+          title="Tasks Completed"
+          value={kpi((s) => `${s.tasksCompleted} / ${s.tasksTotal}`)}
+          trend={summary && `${completionRate}% completion rate`}
+        />
       </section>
+      {summaryError && <ErrorBanner message={`Couldn't load dashboard metrics: ${summaryError}`} />}
 
       {/* Main Content Area: Recent Customers Table */}
       <section style={{ backgroundColor: '#fff', borderRadius: '8px', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <h2 style={{ margin: 0, fontSize: '1.125rem', color: '#0f172a' }}>Customer Directory</h2>
+          <h2 style={{ margin: 0, fontSize: '1.125rem', color: '#0f172a' }}>
+            Customer Directory
+            {!customersLoading && !customersError && (
+              <span style={{ marginLeft: '8px', fontSize: '0.875rem', fontWeight: 'normal', color: '#64748b' }}>
+                ({totalCount})
+              </span>
+            )}
+          </h2>
           <input
             type="text"
             placeholder="Search name or company..."
@@ -85,23 +135,36 @@ export default function CrmHomepage() {
             </tr>
           </thead>
           <tbody>
-            {filteredCustomers.map((customer) => (
-              <tr key={customer.id} style={{ borderBottom: '1px solid #f1f5f9', fontSize: '0.925rem' }}>
-                <td style={{ padding: '12px 8px', fontWeight: '500', color: '#0f172a' }}>{customer.name}</td>
-                <td style={{ padding: '12px 8px', color: '#475569' }}>{customer.company}</td>
-                <td style={{ padding: '12px 8px' }}>
-                  <StatusBadge status={customer.status} />
-                </td>
-                <td style={{ padding: '12px 8px', color: '#0f172a' }}>{customer.value}</td>
-                <td style={{ padding: '12px 8px', color: '#64748b' }}>{customer.lastContact}</td>
-              </tr>
-            ))}
-            {filteredCustomers.length === 0 && (
-              <tr>
-                <td colSpan="5" style={{ padding: '20px', textAlign: 'center', color: '#64748b' }}>
-                  No matching customers found.
-                </td>
-              </tr>
+            {!customersError &&
+              customers.map((customer) => (
+                <tr
+                  key={customer.id}
+                  style={{
+                    borderBottom: '1px solid #f1f5f9',
+                    fontSize: '0.925rem',
+                    opacity: customersLoading ? 0.5 : 1,
+                  }}
+                >
+                  <td style={{ padding: '12px 8px', fontWeight: '500', color: '#0f172a' }}>{customer.name}</td>
+                  <td style={{ padding: '12px 8px', color: '#475569' }}>{customer.company || '—'}</td>
+                  <td style={{ padding: '12px 8px' }}>
+                    <StatusBadge status={customer.status} />
+                  </td>
+                  <td style={{ padding: '12px 8px', color: '#0f172a' }}>{formatCurrency(customer.dealValue)}</td>
+                  <td
+                    style={{ padding: '12px 8px', color: '#64748b' }}
+                    title={customer.lastContactAt ? new Date(customer.lastContactAt).toLocaleString() : undefined}
+                  >
+                    {formatRelativeTime(customer.lastContactAt)}
+                  </td>
+                </tr>
+              ))}
+            {customersLoading && customers.length === 0 && !customersError && (
+              <MessageRow>Loading customers…</MessageRow>
+            )}
+            {customersError && <MessageRow color="#b91c1c">Couldn't load customers: {customersError}</MessageRow>}
+            {!customersLoading && !customersError && customers.length === 0 && (
+              <MessageRow>No matching customers found.</MessageRow>
             )}
           </tbody>
         </table>
@@ -117,7 +180,36 @@ function StatCard({ title, value, trend }) {
     <div style={{ backgroundColor: '#fff', padding: '16px', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
       <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b' }}>{title}</p>
       <h3 style={{ margin: '8px 0 4px', fontSize: '1.5rem', color: '#0f172a' }}>{value}</h3>
-      <span style={{ fontSize: '0.75rem', color: '#16a34a' }}>{trend}</span>
+      {trend && <span style={{ fontSize: '0.75rem', color: '#16a34a' }}>{trend}</span>}
+    </div>
+  );
+}
+
+function MessageRow({ children, color = '#64748b' }) {
+  return (
+    <tr>
+      <td colSpan="5" style={{ padding: '20px', textAlign: 'center', color }}>
+        {children}
+      </td>
+    </tr>
+  );
+}
+
+function ErrorBanner({ message }) {
+  return (
+    <div
+      role="alert"
+      style={{
+        backgroundColor: '#fef2f2',
+        color: '#b91c1c',
+        border: '1px solid #fecaca',
+        borderRadius: '6px',
+        padding: '10px 14px',
+        marginBottom: '24px',
+        fontSize: '0.875rem',
+      }}
+    >
+      {message}
     </div>
   );
 }

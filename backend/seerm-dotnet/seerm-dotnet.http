@@ -1,6 +1,62 @@
-@seerm_dotnet_HostAddress = http://localhost:5067
+@host = http://localhost:5067
 
-GET {{seerm_dotnet_HostAddress}}/weatherforecast/
-Accept: application/json
+### Dashboard KPIs
+GET {{host}}/api/dashboard/summary
 
-###
+### Customer directory (search + paging)
+GET {{host}}/api/customers?search=apex&page=1&pageSize=20
+
+### One customer
+GET {{host}}/api/customers/1
+
+### Create customer (New Customer form)
+POST {{host}}/api/customers
+Content-Type: application/json
+
+{
+  "fullName": "Test Person",
+  "email": "test.person@mail.example",
+  "phone": "555-999-0000",
+  "accountType": "individual",
+  "company": ""
+}
+
+### Update customer
+PUT {{host}}/api/customers/1
+Content-Type: application/json
+
+{
+  "fullName": "Sarah Jenkins",
+  "email": "sarah.jenkins@apexlogistics.example",
+  "phone": "555-201-1001",
+  "accountType": "business",
+  "company": "Apex Logistics",
+  "status": "Active"
+}
+
+### Customer deals
+GET {{host}}/api/customers/1/deals
+
+### Create deal
+POST {{host}}/api/customers/1/deals
+Content-Type: application/json
+
+{ "title": "Route optimisation", "value": 7500, "stage": "prospecting", "expectedCloseDate": "2026-12-31" }
+
+### Open tasks due in the next week
+GET {{host}}/api/tasks?status=open&dueBefore=2026-11-28
+
+### Create task
+POST {{host}}/api/customers/1/tasks
+Content-Type: application/json
+
+{ "title": "Call about route optimisation", "dueDate": "2026-11-25", "status": "open" }
+
+### Customer interactions
+GET {{host}}/api/customers/1/interactions
+
+### Log interaction
+POST {{host}}/api/customers/1/interactions
+Content-Type: application/json
+
+{ "type": "call", "summary": "Quick check-in" }

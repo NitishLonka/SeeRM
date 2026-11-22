@@ -6,7 +6,6 @@ C:\Users\nitish\SeeRM\backend\seerm-dotnet\bin\Debug\net10.0\seerm-dotnet.deps.j
 C:\Users\nitish\SeeRM\backend\seerm-dotnet\bin\Debug\net10.0\seerm-dotnet.runtimeconfig.json
 C:\Users\nitish\SeeRM\backend\seerm-dotnet\bin\Debug\net10.0\seerm-dotnet.dll
 C:\Users\nitish\SeeRM\backend\seerm-dotnet\bin\Debug\net10.0\seerm-dotnet.pdb
-C:\Users\nitish\SeeRM\backend\seerm-dotnet\bin\Debug\net10.0\Microsoft.AspNetCore.OpenApi.dll
 C:\Users\nitish\SeeRM\backend\seerm-dotnet\bin\Debug\net10.0\Microsoft.OpenApi.dll
 C:\Users\nitish\SeeRM\backend\seerm-dotnet\obj\Debug\net10.0\seerm-dotnet.csproj.AssemblyReference.cache
 C:\Users\nitish\SeeRM\backend\seerm-dotnet\obj\Debug\net10.0\rpswa.dswa.cache.json
@@ -31,3 +30,14 @@ C:\Users\nitish\SeeRM\backend\seerm-dotnet\obj\Debug\net10.0\refint\seerm-dotnet
 C:\Users\nitish\SeeRM\backend\seerm-dotnet\obj\Debug\net10.0\seerm-dotnet.pdb
 C:\Users\nitish\SeeRM\backend\seerm-dotnet\obj\Debug\net10.0\seerm-dotnet.genruntimeconfig.cache
 C:\Users\nitish\SeeRM\backend\seerm-dotnet\obj\Debug\net10.0\ref\seerm-dotnet.dll
+C:\Users\nitish\SeeRM\backend\seerm-dotnet\bin\Debug\net10.0\seerm-dotnet.xml
+C:\Users\nitish\SeeRM\backend\seerm-dotnet\bin\Debug\net10.0\Microsoft.EntityFrameworkCore.dll
+C:\Users\nitish\SeeRM\backend\seerm-dotnet\bin\Debug\net10.0\Microsoft.EntityFrameworkCore.Abstractions.dll
+C:\Users\nitish\SeeRM\backend\seerm-dotnet\bin\Debug\net10.0\Microsoft.EntityFrameworkCore.Relational.dll
+C:\Users\nitish\SeeRM\backend\seerm-dotnet\bin\Debug\net10.0\Npgsql.dll
+C:\Users\nitish\SeeRM\backend\seerm-dotnet\bin\Debug\net10.0\Npgsql.EntityFrameworkCore.PostgreSQL.dll
+C:\Users\nitish\SeeRM\backend\seerm-dotnet\bin\Debug\net10.0\Swashbuckle.AspNetCore.Swagger.dll
+C:\Users\nitish\SeeRM\backend\seerm-dotnet\bin\Debug\net10.0\Swashbuckle.AspNetCore.SwaggerGen.dll
+C:\Users\nitish\SeeRM\backend\seerm-dotnet\bin\Debug\net10.0\Swashbuckle.AspNetCore.SwaggerUI.dll
+C:\Users\nitish\SeeRM\backend\seerm-dotnet\obj\Debug\net10.0\seerm-dotnet.sourcelink.json
+C:\Users\nitish\SeeRM\backend\seerm-dotnet\obj\Debug\net10.0\seerm-dotnet.xml

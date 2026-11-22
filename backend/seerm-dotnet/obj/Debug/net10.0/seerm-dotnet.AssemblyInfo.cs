@@ -10,10 +10,11 @@
 using System;
 using System.Reflection;
 
+[assembly: Microsoft.Extensions.Configuration.UserSecrets.UserSecretsIdAttribute("seerm-api-dev")]
 [assembly: System.Reflection.AssemblyCompanyAttribute("seerm-dotnet")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+25754a914e6725e8f9d7867a6b50ee0801791098")]
 [assembly: System.Reflection.AssemblyProductAttribute("seerm-dotnet")]
 [assembly: System.Reflection.AssemblyTitleAttribute("seerm-dotnet")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

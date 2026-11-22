@@ -1,0 +1,244 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>seerm-dotnet</name>
+    </assembly>
+    <members>
+        <member name="T:SeeRM.Api.Contracts.PagedResult`1">
+            <summary>A page of results.</summary>
+        </member>
+        <member name="M:SeeRM.Api.Contracts.PagedResult`1.#ctor(System.Collections.Generic.IReadOnlyList{`0},System.Int32,System.Int32,System.Int32)">
+            <summary>A page of results.</summary>
+        </member>
+        <member name="T:SeeRM.Api.Contracts.CustomerRequest">
+            <summary>Body for creating or updating a customer (the "New Customer" form).</summary>
+        </member>
+        <member name="P:SeeRM.Api.Contracts.CustomerRequest.FullName">
+            <example>Sarah Jenkins</example>
+        </member>
+        <member name="P:SeeRM.Api.Contracts.CustomerRequest.Email">
+            <example>sarah.jenkins@apexlogistics.example</example>
+        </member>
+        <member name="P:SeeRM.Api.Contracts.CustomerRequest.Phone">
+            <example>555-201-1001</example>
+        </member>
+        <member name="P:SeeRM.Api.Contracts.CustomerRequest.AccountType">
+            <summary>individual | business</summary>
+            <example>business</example>
+        </member>
+        <member name="P:SeeRM.Api.Contracts.CustomerRequest.Company">
+            <summary>Optional company name. Empty is stored as null.</summary>
+            <example>Apex Logistics</example>
+        </member>
+        <member name="P:SeeRM.Api.Contracts.CustomerRequest.Status">
+            <summary>Lead | Active | Inactive. Not on the form; defaults to Lead on create, unchanged on update when omitted.</summary>
+            <example>Lead</example>
+        </member>
+        <member name="T:SeeRM.Api.Contracts.CustomerListItemDto">
+            <summary>Row in the dashboard's Customer Directory table.</summary>
+        </member>
+        <member name="M:SeeRM.Api.Contracts.CustomerListItemDto.#ctor(System.Int64,System.String,System.String,System.String,System.Decimal,System.Nullable{System.DateTime})">
+            <summary>Row in the dashboard's Customer Directory table.</summary>
+        </member>
+        <member name="T:SeeRM.Api.Contracts.CustomerDto">
+            <summary>Full customer record.</summary>
+        </member>
+        <member name="M:SeeRM.Api.Contracts.CustomerDto.#ctor(System.Int64,System.String,System.String,System.String,System.String,System.String,System.String,System.Decimal,System.Decimal,System.Nullable{System.DateTime},System.DateTime,System.DateTime)">
+            <summary>Full customer record.</summary>
+        </member>
+        <member name="P:SeeRM.Api.Contracts.DealRequest.Title">
+            <example>Warehouse analytics add-on</example>
+        </member>
+        <member name="P:SeeRM.Api.Contracts.DealRequest.Value">
+            <example>5000</example>
+        </member>
+        <member name="P:SeeRM.Api.Contracts.DealRequest.Stage">
+            <summary>prospecting | qualification | proposal | negotiation | won | lost</summary>
+            <example>proposal</example>
+        </member>
+        <member name="P:SeeRM.Api.Contracts.DealRequest.ExpectedCloseDate">
+            <example>2026-12-15</example>
+        </member>
+        <member name="P:SeeRM.Api.Contracts.TaskRequest.Title">
+            <example>Follow up on pricing questions</example>
+        </member>
+        <member name="P:SeeRM.Api.Contracts.TaskRequest.DealId">
+            <summary>Optional deal this task belongs to; must belong to the same customer.</summary>
+        </member>
+        <member name="P:SeeRM.Api.Contracts.TaskRequest.DueDate">
+            <example>2026-11-25</example>
+        </member>
+        <member name="P:SeeRM.Api.Contracts.TaskRequest.Status">
+            <summary>open | completed</summary>
+            <example>open</example>
+        </member>
+        <member name="P:SeeRM.Api.Contracts.InteractionRequest.Type">
+            <summary>call | email | meeting | note</summary>
+            <example>call</example>
+        </member>
+        <member name="P:SeeRM.Api.Contracts.InteractionRequest.Summary">
+            <example>Discussed renewal timeline</example>
+        </member>
+        <member name="P:SeeRM.Api.Contracts.InteractionRequest.OccurredAt">
+            <summary>When it happened (UTC). Defaults to now.</summary>
+        </member>
+        <member name="T:SeeRM.Api.Contracts.DashboardSummaryDto">
+            <summary>Values for the dashboard KPI cards.</summary>
+        </member>
+        <member name="M:SeeRM.Api.Contracts.DashboardSummaryDto.#ctor(System.Int32,System.Int32,System.Decimal,System.Int32,System.Int32,System.Int32)">
+            <summary>Values for the dashboard KPI cards.</summary>
+        </member>
+        <member name="T:SeeRM.Api.Controllers.CustomersController">
+            <summary>Customer directory and the New Customer form.</summary>
+        </member>
+        <member name="M:SeeRM.Api.Controllers.CustomersController.#ctor(SeeRM.Api.Services.CustomerService,SeeRM.Api.Services.DealService,SeeRM.Api.Services.TaskService,SeeRM.Api.Services.InteractionService)">
+            <summary>Customer directory and the New Customer form.</summary>
+        </member>
+        <member name="M:SeeRM.Api.Controllers.CustomersController.List(System.String,System.String,System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <summary>List customers for the dashboard directory.</summary>
+            <param name="search">Case-insensitive match on name or company.</param>
+            <param name="status">Lead | Active | Inactive</param>
+            <param name="page">1-based page number.</param>
+            <param name="pageSize">1–100, default 20.</param>
+            <param name="ct"></param>
+        </member>
+        <member name="M:SeeRM.Api.Controllers.CustomersController.Get(System.Int64,System.Threading.CancellationToken)">
+            <summary>Get one customer.</summary>
+        </member>
+        <member name="M:SeeRM.Api.Controllers.CustomersController.Create(SeeRM.Api.Contracts.CustomerRequest,System.Threading.CancellationToken)">
+            <summary>Create a customer. Status defaults to "Lead".</summary>
+        </member>
+        <member name="M:SeeRM.Api.Controllers.CustomersController.Update(System.Int64,SeeRM.Api.Contracts.CustomerRequest,System.Threading.CancellationToken)">
+            <summary>Update a customer. Omitting status leaves it unchanged.</summary>
+        </member>
+        <member name="M:SeeRM.Api.Controllers.CustomersController.Delete(System.Int64,System.Threading.CancellationToken)">
+            <summary>Delete a customer and all of its deals, tasks and interactions.</summary>
+        </member>
+        <member name="M:SeeRM.Api.Controllers.CustomersController.ListDeals(System.Int64,System.Threading.CancellationToken)">
+            <summary>List a customer's deals.</summary>
+        </member>
+        <member name="M:SeeRM.Api.Controllers.CustomersController.CreateDeal(System.Int64,SeeRM.Api.Contracts.DealRequest,System.Threading.CancellationToken)">
+            <summary>Create a deal for a customer.</summary>
+        </member>
+        <member name="M:SeeRM.Api.Controllers.CustomersController.CreateTask(System.Int64,SeeRM.Api.Contracts.TaskRequest,System.Threading.CancellationToken)">
+            <summary>Create a task for a customer.</summary>
+        </member>
+        <member name="M:SeeRM.Api.Controllers.CustomersController.ListInteractions(System.Int64,System.Threading.CancellationToken)">
+            <summary>List a customer's interactions, newest first.</summary>
+        </member>
+        <member name="M:SeeRM.Api.Controllers.CustomersController.CreateInteraction(System.Int64,SeeRM.Api.Contracts.InteractionRequest,System.Threading.CancellationToken)">
+            <summary>Log a call, email, meeting or note for a customer.</summary>
+        </member>
+        <member name="T:SeeRM.Api.Controllers.DashboardController">
+            <summary>Dashboard KPI cards.</summary>
+        </member>
+        <member name="M:SeeRM.Api.Controllers.DashboardController.#ctor(SeeRM.Api.Services.DashboardService)">
+            <summary>Dashboard KPI cards.</summary>
+        </member>
+        <member name="M:SeeRM.Api.Controllers.DashboardController.Summary(System.Threading.CancellationToken)">
+            <summary>Total customers, active leads, pipeline revenue, task completion and follow-ups due in the next 7 days.</summary>
+        </member>
+        <member name="T:SeeRM.Api.Controllers.DealsController">
+            <summary>Sales opportunities. Create and list are under /api/customers/{customerId}/deals.</summary>
+        </member>
+        <member name="M:SeeRM.Api.Controllers.DealsController.#ctor(SeeRM.Api.Services.DealService)">
+            <summary>Sales opportunities. Create and list are under /api/customers/{customerId}/deals.</summary>
+        </member>
+        <member name="M:SeeRM.Api.Controllers.DealsController.Get(System.Int64,System.Threading.CancellationToken)">
+            <summary>Get one deal.</summary>
+        </member>
+        <member name="M:SeeRM.Api.Controllers.DealsController.Update(System.Int64,SeeRM.Api.Contracts.DealRequest,System.Threading.CancellationToken)">
+            <summary>Update a deal. Moving to won/lost sets closedAt; reopening clears it.</summary>
+        </member>
+        <member name="M:SeeRM.Api.Controllers.DealsController.Delete(System.Int64,System.Threading.CancellationToken)">
+            <summary>Delete a deal. Linked tasks are kept and unlinked.</summary>
+        </member>
+        <member name="T:SeeRM.Api.Controllers.InteractionsController">
+            <summary>Calls, emails, meetings and notes. Create and list are under /api/customers/{customerId}/interactions.</summary>
+        </member>
+        <member name="M:SeeRM.Api.Controllers.InteractionsController.#ctor(SeeRM.Api.Services.InteractionService)">
+            <summary>Calls, emails, meetings and notes. Create and list are under /api/customers/{customerId}/interactions.</summary>
+        </member>
+        <member name="M:SeeRM.Api.Controllers.InteractionsController.Get(System.Int64,System.Threading.CancellationToken)">
+            <summary>Get one interaction.</summary>
+        </member>
+        <member name="M:SeeRM.Api.Controllers.InteractionsController.Update(System.Int64,SeeRM.Api.Contracts.InteractionRequest,System.Threading.CancellationToken)">
+            <summary>Edit an interaction.</summary>
+        </member>
+        <member name="M:SeeRM.Api.Controllers.InteractionsController.Delete(System.Int64,System.Threading.CancellationToken)">
+            <summary>Delete an interaction.</summary>
+        </member>
+        <member name="T:SeeRM.Api.Controllers.TasksController">
+            <summary>Follow-up tasks. Create is under /api/customers/{customerId}/tasks.</summary>
+        </member>
+        <member name="M:SeeRM.Api.Controllers.TasksController.#ctor(SeeRM.Api.Services.TaskService)">
+            <summary>Follow-up tasks. Create is under /api/customers/{customerId}/tasks.</summary>
+        </member>
+        <member name="M:SeeRM.Api.Controllers.TasksController.List(System.Nullable{System.Int64},System.String,System.Nullable{System.DateOnly},System.Threading.CancellationToken)">
+            <summary>List tasks, ordered by due date.</summary>
+            <param name="customerId">Only tasks for this customer.</param>
+            <param name="status">open | completed</param>
+            <param name="dueBefore">Only tasks due on or before this date (yyyy-MM-dd).</param>
+            <param name="ct"></param>
+        </member>
+        <member name="M:SeeRM.Api.Controllers.TasksController.Get(System.Int64,System.Threading.CancellationToken)">
+            <summary>Get one task.</summary>
+        </member>
+        <member name="M:SeeRM.Api.Controllers.TasksController.Update(System.Int64,SeeRM.Api.Contracts.TaskRequest,System.Threading.CancellationToken)">
+            <summary>Update a task. Completing sets completedAt; reopening clears it.</summary>
+        </member>
+        <member name="M:SeeRM.Api.Controllers.TasksController.Delete(System.Int64,System.Threading.CancellationToken)">
+            <summary>Delete a task.</summary>
+        </member>
+        <member name="T:SeeRM.Api.Data.SeeRmDbContext">
+            <summary>
+            Maps to the existing schema created by sqlscripts/001_create_tables.sql (database-first;
+            no EF migrations). Column names are snake_case versions of the property names.
+            </summary>
+        </member>
+        <member name="M:SeeRM.Api.Data.SeeRmDbContext.#ctor(Microsoft.EntityFrameworkCore.DbContextOptions{SeeRM.Api.Data.SeeRmDbContext})">
+            <summary>
+            Maps to the existing schema created by sqlscripts/001_create_tables.sql (database-first;
+            no EF migrations). Column names are snake_case versions of the property names.
+            </summary>
+        </member>
+        <member name="T:SeeRM.Api.Domain.TaskItem">
+            <summary>Row in the <c>tasks</c> table (named TaskItem to avoid clashing with System.Threading.Tasks.Task).</summary>
+        </member>
+        <member name="T:SeeRM.Api.Infrastructure.ApiException">
+            <summary>Thrown by services; mapped to HTTP status codes by <see cref="T:SeeRM.Api.Infrastructure.ApiExceptionHandler"/>.</summary>
+        </member>
+        <member name="M:SeeRM.Api.Infrastructure.ApiException.#ctor(System.String)">
+            <summary>Thrown by services; mapped to HTTP status codes by <see cref="T:SeeRM.Api.Infrastructure.ApiExceptionHandler"/>.</summary>
+        </member>
+        <member name="T:SeeRM.Api.Infrastructure.ApiExceptionHandler">
+            <summary>Turns exceptions into RFC 7807 ProblemDetails responses.</summary>
+        </member>
+        <member name="M:SeeRM.Api.Infrastructure.ApiExceptionHandler.#ctor(Microsoft.AspNetCore.Http.IProblemDetailsService,Microsoft.Extensions.Logging.ILogger{SeeRM.Api.Infrastructure.ApiExceptionHandler})">
+            <summary>Turns exceptions into RFC 7807 ProblemDetails responses.</summary>
+        </member>
+        <member name="M:SeeRM.Api.Services.CustomerService.ListAsync(System.String,System.String,System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <summary>Directory list with case-insensitive search on name or company.</summary>
+        </member>
+        <member name="M:SeeRM.Api.Services.CustomerService.DeleteAsync(System.Int64,System.Threading.CancellationToken)">
+            <summary>Hard delete; the database cascades to deals, tasks and interactions.</summary>
+        </member>
+        <member name="M:SeeRM.Api.Services.CustomerService.EscapeLike(System.String)">
+            <summary>Escapes LIKE wildcards so user input is matched literally (Postgres default escape is '\').</summary>
+        </member>
+        <member name="F:SeeRM.Api.Services.DashboardService.FollowUpWindowDays">
+            <summary>Number of days ahead an open task counts as a "follow-up due".</summary>
+        </member>
+        <member name="M:SeeRM.Api.Services.DealService.DeleteAsync(System.Int64,System.Threading.CancellationToken)">
+            <summary>Linked tasks are kept; the database sets their deal_id to null.</summary>
+        </member>
+        <member name="M:SeeRM.Api.Services.TaskService.ListAsync(System.Nullable{System.Int64},System.String,System.Nullable{System.DateOnly},System.Threading.CancellationToken)">
+            <summary>Tasks filtered by customer, status and/or due date (inclusive).</summary>
+        </member>
+        <member name="T:Program">
+            <summary>
+            Auto-generated public partial Program class for top-level statement apps.
+            </summary>
+        </member>
+    </members>
+</doc>

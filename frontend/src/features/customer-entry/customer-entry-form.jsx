@@ -1,12 +1,16 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
+import { api, ApiError } from '../../api/client';
+
+const FORM_FIELDS = ['fullName', 'email', 'phone', 'accountType', 'company'];
 
 export default function NewCustomerForm() {
   const {
     register,
     handleSubmit,
     reset,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm({
     defaultValues: {
@@ -19,11 +23,28 @@ export default function NewCustomerForm() {
   });
 
   const onSubmit = async (data) => {
-    // Simulate an API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    console.log('New Customer Data:', data);
-    alert('Customer created successfully!');
-    reset();
+    try {
+      const created = await api.createCustomer(data);
+      alert(`Customer "${created.fullName}" created successfully!`);
+      reset();
+    } catch (err) {
+      if (!(err instanceof ApiError)) throw err;
+
+      // Show server-side validation errors next to the matching fields.
+      const fieldErrors = err.fieldErrors;
+      let mapped = false;
+      for (const [field, message] of Object.entries(fieldErrors)) {
+        if (FORM_FIELDS.includes(field)) {
+          setError(field, { type: 'server', message });
+          mapped = true;
+        }
+      }
+      if (err.status === 409) {
+        setError('email', { type: 'server', message: 'A customer with this email already exists' });
+      } else if (!mapped) {
+        setError('root.server', { type: 'server', message: err.message });
+      }
+    }
   };
 
   return (
@@ -104,6 +125,12 @@ export default function NewCustomerForm() {
           {...register('company')}
         />
       </div>
+
+      {errors.root?.server && (
+        <p role="alert" style={{ color: 'red', fontSize: '0.875rem' }}>
+          {errors.root.server.message}
+        </p>
+      )}
 
       <button type="submit" disabled={isSubmitting}>
         {isSubmitting ? 'Saving...' : 'Create Customer'}
