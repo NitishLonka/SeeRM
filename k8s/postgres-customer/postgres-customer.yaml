@@ -1,0 +1,90 @@
+# Customer service database (owned only by the Customer service).
+# Data lives on a PersistentVolumeClaim, so it survives pod / StatefulSet deletion.
+# Credentials come from the "postgres-customer-credentials" Secret (created separately, not committed):
+#   kubectl create secret generic postgres-customer-credentials \
+#     --from-literal=POSTGRES_USER=customer_svc \
+#     --from-literal=POSTGRES_PASSWORD=<password> \
+#     --from-literal=POSTGRES_DB=customer
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-customer-data
+  labels:
+    app: postgres-customer
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-customer
+  labels:
+    app: postgres-customer
+spec:
+  type: NodePort
+  selector:
+    app: postgres-customer
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+      nodePort: 30433
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-customer
+  labels:
+    app: postgres-customer
+spec:
+  serviceName: postgres-customer
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-customer
+  template:
+    metadata:
+      labels:
+        app: postgres-customer
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:17
+          # Small footprint for a dev machine.
+          args: ["-c", "shared_buffers=64MB", "-c", "max_connections=50"]
+          ports:
+            - containerPort: 5432
+              name: postgres
+          envFrom:
+            - secretRef:
+                name: postgres-customer-credentials
+          env:
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\""]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\""]
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              memory: 384Mi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: postgres-customer-data

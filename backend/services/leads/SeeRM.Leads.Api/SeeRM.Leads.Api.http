@@ -1,0 +1,44 @@
+@host = http://localhost:5080
+
+### KPI summary
+GET {{host}}/api/leads/summary
+
+### List (search / status / source / paging)
+GET {{host}}/api/leads?status=Qualified&page=1&pageSize=20
+
+### One lead
+GET {{host}}/api/leads/14
+
+### Create lead
+POST {{host}}/api/leads
+Content-Type: application/json
+
+{
+  "firstName": "Test",
+  "lastName": "Lead",
+  "email": "test.lead@mail.example",
+  "phone": "555-999-1234",
+  "company": "Test Co",
+  "jobTitle": "Buyer",
+  "source": "website",
+  "status": "New",
+  "score": 20,
+  "estimatedValue": 5000
+}
+
+### Update lead
+PUT {{host}}/api/leads/1
+Content-Type: application/json
+
+{
+  "firstName": "Olivia",
+  "lastName": "Bennett",
+  "email": "olivia.bennett@tidewaterfreight.example",
+  "phone": "555-301-2001",
+  "company": "Tidewater Freight",
+  "jobTitle": "Operations Manager",
+  "source": "website",
+  "status": "Contacted",
+  "score": 45,
+  "estimatedValue": 12000
+}

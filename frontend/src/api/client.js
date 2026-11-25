@@ -1,5 +1,5 @@
-// Thin fetch wrapper for the SeeRM API (backend/seerm-dotnet).
-const BASE_URL = (process.env.REACT_APP_API_BASE_URL || 'http://localhost:5067').replace(/\/$/, '');
+// Thin fetch wrapper for the SeeRM API gateway (backend/gateway), which routes to each microservice.
+const BASE_URL = (process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000').replace(/\/$/, '');
 
 /** Error carrying the HTTP status and the RFC 7807 ProblemDetails body returned by the API. */
 export class ApiError extends Error {
@@ -55,4 +55,23 @@ export const api = {
   },
 
   createCustomer: (customer) => request('/api/customers', { method: 'POST', body: customer }),
+
+  // ---- Leads service (routed by the gateway) ----
+  getLeadSummary: (signal) => request('/api/leads/summary', { signal }),
+
+  listLeads: ({ search, status, source, page = 1, pageSize = 20 } = {}, signal) => {
+    const params = new URLSearchParams({ page, pageSize });
+    if (search) params.set('search', search);
+    if (status) params.set('status', status);
+    if (source) params.set('source', source);
+    return request(`/api/leads?${params}`, { signal });
+  },
+
+  getLead: (id, signal) => request(`/api/leads/${id}`, { signal }),
+  createLead: (lead) => request('/api/leads', { method: 'POST', body: lead }),
+  updateLead: (id, lead) => request(`/api/leads/${id}`, { method: 'PUT', body: lead }),
+  deleteLead: (id) => request(`/api/leads/${id}`, { method: 'DELETE' }),
+
+  /** Converts a Qualified lead into a customer in the Customer service. */
+  convertLead: (id) => request(`/api/leads/${id}/convert`, { method: 'POST' }),
 };

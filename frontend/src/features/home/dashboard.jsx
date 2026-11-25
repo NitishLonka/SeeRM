@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../api/client';
 import { formatCurrency, formatRelativeTime } from '../../utils/format';
+import { ErrorBanner, MessageRow, StatCard, pageStyle, primaryButtonStyle, secondaryLinkStyle } from '../../components/ui';
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -58,7 +59,7 @@ export default function CrmHomepage() {
     summary && summary.tasksTotal > 0 ? Math.round((summary.tasksCompleted / summary.tasksTotal) * 100) : 0;
 
   return (
-    <div style={{ fontFamily: 'sans-serif', backgroundColor: '#f8fafc', minHeight: '100vh', padding: '24px' }}>
+    <div style={pageStyle}>
       {/* Top Header */}
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
@@ -67,19 +68,14 @@ export default function CrmHomepage() {
             Welcome back. Here is your pipeline overview.
           </p>
         </div>
-        <Link
-          to="/customer-entry"
-          style={{
-            backgroundColor: '#2563eb',
-            color: '#fff',
-            textDecoration: 'none',
-            padding: '10px 16px',
-            borderRadius: '6px',
-            fontWeight: '600',
-          }}
-        >
-          + New Customer
-        </Link>
+        <nav style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <Link to="/leads" style={secondaryLinkStyle}>
+            Leads
+          </Link>
+          <Link to="/customer-entry" style={primaryButtonStyle}>
+            + New Customer
+          </Link>
+        </nav>
       </header>
 
       {/* KPI Metrics Row */}
@@ -170,46 +166,6 @@ export default function CrmHomepage() {
         </table>
       </section>
 
-    </div>
-  );
-}
-
-// Reusable KPI Card Component
-function StatCard({ title, value, trend }) {
-  return (
-    <div style={{ backgroundColor: '#fff', padding: '16px', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-      <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b' }}>{title}</p>
-      <h3 style={{ margin: '8px 0 4px', fontSize: '1.5rem', color: '#0f172a' }}>{value}</h3>
-      {trend && <span style={{ fontSize: '0.75rem', color: '#16a34a' }}>{trend}</span>}
-    </div>
-  );
-}
-
-function MessageRow({ children, color = '#64748b' }) {
-  return (
-    <tr>
-      <td colSpan="5" style={{ padding: '20px', textAlign: 'center', color }}>
-        {children}
-      </td>
-    </tr>
-  );
-}
-
-function ErrorBanner({ message }) {
-  return (
-    <div
-      role="alert"
-      style={{
-        backgroundColor: '#fef2f2',
-        color: '#b91c1c',
-        border: '1px solid #fecaca',
-        borderRadius: '6px',
-        padding: '10px 14px',
-        marginBottom: '24px',
-        fontSize: '0.875rem',
-      }}
-    >
-      {message}
     </div>
   );
 }

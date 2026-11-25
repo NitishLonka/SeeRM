@@ -8,9 +8,12 @@ namespace SeeRM.Api.Services;
 
 public class CustomerService(SeeRmDbContext db)
 {
-    /// <summary>Directory list with case-insensitive search on name or company.</summary>
+    /// <summary>
+    /// Directory list with case-insensitive search on name or company.
+    /// <paramref name="email"/> is an exact, case-insensitive match (used by other services to find an existing customer).
+    /// </summary>
     public async Task<PagedResult<CustomerListItemDto>> ListAsync(
-        string? search, string? status, int page, int pageSize, CancellationToken ct)
+        string? search, string? status, string? email, int page, int pageSize, CancellationToken ct)
     {
         if (status is not null && !CustomerStatuses.All.Contains(status))
             throw new BadRequestException($"Unknown status '{status}'. Allowed: {string.Join(", ", CustomerStatuses.All)}.");
@@ -28,6 +31,11 @@ public class CustomerService(SeeRmDbContext db)
         }
         if (status is not null)
             query = query.Where(c => c.Status == status);
+        if (!string.IsNullOrWhiteSpace(email))
+        {
+            var emailLower = email.Trim().ToLower();
+            query = query.Where(c => c.Email.ToLower() == emailLower);
+        }
 
         var total = await query.CountAsync(ct);
 

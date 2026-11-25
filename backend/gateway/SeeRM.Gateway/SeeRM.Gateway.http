@@ -1,0 +1,19 @@
+@gateway = http://localhost:5000
+
+### Gateway + downstream health
+GET {{gateway}}/health
+
+### Customer service via gateway
+GET {{gateway}}/api/dashboard/summary
+
+###
+GET {{gateway}}/api/customers?search=apex
+
+### Leads service via gateway
+GET {{gateway}}/api/leads/summary
+
+###
+GET {{gateway}}/api/leads?status=Qualified
+
+### Convert a lead (Leads -> Customer)
+POST {{gateway}}/api/leads/14/convert

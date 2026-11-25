@@ -14,6 +14,7 @@ public class CustomersController(CustomerService customers, DealService deals, T
     /// <summary>List customers for the dashboard directory.</summary>
     /// <param name="search">Case-insensitive match on name or company.</param>
     /// <param name="status">Lead | Active | Inactive</param>
+    /// <param name="email">Exact, case-insensitive email match. Used by other services (e.g. Leads) to find an existing customer.</param>
     /// <param name="page">1-based page number.</param>
     /// <param name="pageSize">1–100, default 20.</param>
     /// <param name="ct"></param>
@@ -21,9 +22,9 @@ public class CustomersController(CustomerService customers, DealService deals, T
     [ProducesResponseType<PagedResult<CustomerListItemDto>>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
     public Task<PagedResult<CustomerListItemDto>> List(
-        [FromQuery] string? search, [FromQuery] string? status,
+        [FromQuery] string? search, [FromQuery] string? status, [FromQuery] string? email,
         [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default) =>
-        customers.ListAsync(search, status, page, pageSize, ct);
+        customers.ListAsync(search, status, email, page, pageSize, ct);
 
     /// <summary>Get one customer.</summary>
     [HttpGet("{id:long}")]

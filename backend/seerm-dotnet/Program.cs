@@ -33,11 +33,9 @@ builder.Services.AddScoped<DashboardService>();
 builder.Services.AddControllers();
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
+builder.Services.AddHealthChecks().AddCheck<DatabaseHealthCheck>("customer-db");
 
-// React dev server (create-react-app) runs on :3000 by default.
-var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
-builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
-    p.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod()));
+// No CORS here: browsers reach this service only through the API gateway (backend/gateway), which handles CORS.
 
 // ---- Swagger ----------------------------------------------------------------
 builder.Services.AddEndpointsApiExplorer();
@@ -72,7 +70,7 @@ else
     app.UseHttpsRedirection();
 }
 
-app.UseCors();
 app.MapControllers();
+app.MapHealthChecks("/health");
 
 app.Run();

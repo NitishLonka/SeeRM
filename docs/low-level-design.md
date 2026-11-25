@@ -1,28 +1,34 @@
-# SeeRM – Low-Level Design (CRUD)
+# SeeRM Customer Service – Low-Level Design (CRUD)
+
+> Part of the SeeRM microservices. For the overall system (gateway, Leads service, databases, how to run) see [architecture.md](architecture.md). The Leads service has its own design doc: [leads-low-level-design.md](leads-low-level-design.md).
 
 ## 1. Scope
 
-The frontend (`frontend/src`) currently has two screens with hard-coded / simulated data:
+The Customer service backs these screens:
 
 | Screen | Route | What it needs from the backend |
 |---|---|---|
 | CRM Dashboard (`features/home/dashboard.jsx`) | `/` | Customer directory (name, company, status, deal value, last contact) with search by name/company; KPI cards: Total Customers, Active Leads, Pipeline Revenue, Tasks Completed |
 | New Customer Registration (`features/customer-entry/customer-entry-form.jsx`) | `/customer-entry` | Create customer: full name, email, phone, account type, company |
 
-This document defines the data model, REST API, and validation rules needed to replace the mock data with real CRUD backed by PostgreSQL (`k8s/postgres`) and the .NET API (`backend/seerm-dotnet`).
+It also serves the Leads service, which looks customers up by email and creates customers and deals when a lead is converted.
+
+This document defines the data model, REST API, and validation rules. The service is the .NET API in `backend/seerm-dotnet`, backed by its own PostgreSQL database (`k8s/postgres-customer`).
 
 ## 2. Architecture
 
 ```
-React (frontend)  ──HTTP/JSON──▶  ASP.NET Core API (seerm-dotnet)  ──EF Core/Npgsql──▶  PostgreSQL 17
-  dashboard.jsx                     Controllers → Services → SeeRmDbContext                customers, deals,
-  customer-entry-form.jsx           DTOs + validation                                      tasks, interactions
+React ──▶ API gateway (:5000) ──▶ Customer service (seerm-dotnet, :5067) ──EF Core/Npgsql──▶ postgres-customer (DB: customer)
+                                     Controllers → Services → SeeRmDbContext                   customers, deals,
+Leads service (:5080) ──direct REST──▶   DTOs + validation                                     tasks, interactions
 ```
 
 - **Controller** (`Controllers/`): HTTP routing, model binding, status codes, Swagger metadata.
 - **Service** (`Services/`): business rules written as EF Core LINQ (default status, duplicate email check, `closedAt`/`completedAt` handling, KPI aggregation).
 - **SeeRmDbContext** (`Data/`): EF Core mapping onto the existing schema (database-first, no migrations). The `DbContext` acts as the repository, so there's no separate repository layer.
 - **Errors** (`Infrastructure/`): service exceptions and Postgres constraint errors become `ProblemDetails` (400/404/409).
+- **Health** (`GET /health`): `Healthy` when the Customer database is reachable. Used by the gateway and the Leads service.
+- **No CORS:** browsers reach this service only through the gateway, which handles CORS.
 
 ## 3. Data Model
 
@@ -132,7 +138,7 @@ All tables also have `created_at` and `updated_at` (`updated_at` is maintained b
 | KPI → Tasks Completed | `COUNT(completed tasks) / COUNT(tasks)` |
 | KPI → follow-ups due | open tasks with `due_date <= today + 7` |
 
-The view `v_customer_directory` returns one row per customer with `deal_value`, `pipeline_value`, and `last_contact_at` already computed.
+The API computes these with EF Core LINQ (`Services/CustomerService.cs`, `Services/DashboardService.cs`). The database also has a view, `v_customer_directory`, with the same per-customer values (`deal_value`, `pipeline_value`, `last_contact_at`) for ad-hoc SQL and reporting.
 
 ### 3.4 Indexes
 
@@ -149,7 +155,7 @@ Base path: `/api`. JSON uses camelCase. Errors use RFC 7807 `ProblemDetails`.
 
 | Method | Path | Purpose | Success |
 |---|---|---|---|
-| GET | `/customers?search=&status=&page=1&pageSize=20` | Directory list (from `v_customer_directory`); `search` matches name or company, case-insensitive | 200 |
+| GET | `/customers?search=&status=&email=&page=1&pageSize=20` | Directory list, most recently contacted first. `search` matches name or company (case-insensitive); `email` is an exact, case-insensitive match used by the Leads service | 200 |
 | GET | `/customers/{id}` | Customer detail | 200 / 404 |
 | POST | `/customers` | Create (New Customer form) | 201 + `Location` |
 | PUT | `/customers/{id}` | Full update (incl. `status`) | 200 / 404 |
@@ -230,7 +236,7 @@ The API returns `dealValue` as a number and `lastContactAt` as ISO-8601. The UI 
 }
 ```
 
-The UI's trend lines ("+12% this month", "+8.4% vs last quarter") are hard-coded for now. They can be computed later from `customers.created_at` and `deals.created_at`/`closed_at`.
+The original UI mock-up had trend lines ("+12% this month", "+8.4% vs last quarter"). They were removed because there's no history to compute them from yet; they could later be derived from `customers.created_at` and `deals.created_at`/`closed_at`.
 
 ## 5. Validation & Business Rules
 
@@ -278,17 +284,19 @@ SELECT
 
 ## 7. Database Scripts
 
-Located in `sqlscripts/`, run in order:
+These tables belong to the **Customer service** and live in its own database: `customer` on the `postgres-customer` pod (`localhost:30433`, login `customer_svc`). The original `seerm` database on `postgres-0` (`localhost:30432`) is **retired but kept**: nothing uses it, and it will be deleted only on explicit approval (see [architecture.md](architecture.md#6-databases)).
+
+Scripts are in `sqlscripts/customer/`, run in order:
 
 | Script | Purpose |
 |---|---|
 | `001_create_tables.sql` | Drops and recreates tables, indexes, triggers, and `v_customer_directory`. **Destructive: dev only.** |
-| `002_insert_mock_data.sql` | Truncates and seeds 20 customers, 30 deals, 22 tasks, 27 interactions. Timestamps are relative to `now()`. The first four customers match the dashboard's hard-coded rows. |
+| `002_insert_mock_data.sql` | Truncates and seeds 20 customers, 30 deals, 22 tasks, 27 interactions. Timestamps are relative to `now()`. The first four customers match the dashboard's original hard-coded rows. |
 
-Run against the local Kubernetes Postgres (from the repo root, Git Bash):
+Run against the Customer DB (from the repo root, Git Bash):
 
 ```bash
-for f in sqlscripts/001_create_tables.sql sqlscripts/002_insert_mock_data.sql; do
-  kubectl exec -i postgres-0 -- sh -c 'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < "$f"
+for f in sqlscripts/customer/001_create_tables.sql sqlscripts/customer/002_insert_mock_data.sql; do
+  kubectl exec -i postgres-customer-0 -- sh -c 'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < "$f"
 done
 ```

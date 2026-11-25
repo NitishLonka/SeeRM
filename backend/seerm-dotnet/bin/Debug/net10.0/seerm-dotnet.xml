@@ -94,10 +94,11 @@
         <member name="M:SeeRM.Api.Controllers.CustomersController.#ctor(SeeRM.Api.Services.CustomerService,SeeRM.Api.Services.DealService,SeeRM.Api.Services.TaskService,SeeRM.Api.Services.InteractionService)">
             <summary>Customer directory and the New Customer form.</summary>
         </member>
-        <member name="M:SeeRM.Api.Controllers.CustomersController.List(System.String,System.String,System.Int32,System.Int32,System.Threading.CancellationToken)">
+        <member name="M:SeeRM.Api.Controllers.CustomersController.List(System.String,System.String,System.String,System.Int32,System.Int32,System.Threading.CancellationToken)">
             <summary>List customers for the dashboard directory.</summary>
             <param name="search">Case-insensitive match on name or company.</param>
             <param name="status">Lead | Active | Inactive</param>
+            <param name="email">Exact, case-insensitive email match. Used by other services (e.g. Leads) to find an existing customer.</param>
             <param name="page">1-based page number.</param>
             <param name="pageSize">1–100, default 20.</param>
             <param name="ct"></param>
@@ -205,6 +206,12 @@
         <member name="T:SeeRM.Api.Domain.TaskItem">
             <summary>Row in the <c>tasks</c> table (named TaskItem to avoid clashing with System.Threading.Tasks.Task).</summary>
         </member>
+        <member name="T:SeeRM.Api.Infrastructure.DatabaseHealthCheck">
+            <summary>Reports Unhealthy when the Customer database can't be reached.</summary>
+        </member>
+        <member name="M:SeeRM.Api.Infrastructure.DatabaseHealthCheck.#ctor(SeeRM.Api.Data.SeeRmDbContext)">
+            <summary>Reports Unhealthy when the Customer database can't be reached.</summary>
+        </member>
         <member name="T:SeeRM.Api.Infrastructure.ApiException">
             <summary>Thrown by services; mapped to HTTP status codes by <see cref="T:SeeRM.Api.Infrastructure.ApiExceptionHandler"/>.</summary>
         </member>
@@ -217,8 +224,11 @@
         <member name="M:SeeRM.Api.Infrastructure.ApiExceptionHandler.#ctor(Microsoft.AspNetCore.Http.IProblemDetailsService,Microsoft.Extensions.Logging.ILogger{SeeRM.Api.Infrastructure.ApiExceptionHandler})">
             <summary>Turns exceptions into RFC 7807 ProblemDetails responses.</summary>
         </member>
-        <member name="M:SeeRM.Api.Services.CustomerService.ListAsync(System.String,System.String,System.Int32,System.Int32,System.Threading.CancellationToken)">
-            <summary>Directory list with case-insensitive search on name or company.</summary>
+        <member name="M:SeeRM.Api.Services.CustomerService.ListAsync(System.String,System.String,System.String,System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Directory list with case-insensitive search on name or company.
+            <paramref name="email"/> is an exact, case-insensitive match (used by other services to find an existing customer).
+            </summary>
         </member>
         <member name="M:SeeRM.Api.Services.CustomerService.DeleteAsync(System.Int64,System.Threading.CancellationToken)">
             <summary>Hard delete; the database cascades to deals, tasks and interactions.</summary>
